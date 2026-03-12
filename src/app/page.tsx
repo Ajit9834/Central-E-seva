@@ -80,9 +80,9 @@ export default function HomePage() {
   }, [visible]);
 
   return (
-    <div className="min-h-screen bg-[#04050a] text-white overflow-x-hidden">
+    <div className="min-h-screen app-shell overflow-x-hidden">
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#04050a]/80 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b app-nav backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">

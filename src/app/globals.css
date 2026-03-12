@@ -3,6 +3,23 @@
 :root {
   --background: #04050a;
   --foreground: #f8fafc;
+  --app-bg: #04050a;
+  --app-text: #f8fafc;
+  --app-nav: rgba(4, 5, 10, 0.82);
+  --app-border: rgba(255, 255, 255, 0.08);
+  --app-toggle-bg: rgba(255, 255, 255, 0.08);
+  --app-toggle-text: #dbe3ff;
+}
+
+[data-theme='light'] {
+  --background: #f2f5fb;
+  --foreground: #0f172a;
+  --app-bg: #f2f5fb;
+  --app-text: #0f172a;
+  --app-nav: rgba(242, 245, 251, 0.84);
+  --app-border: rgba(15, 23, 42, 0.12);
+  --app-toggle-bg: rgba(15, 23, 42, 0.08);
+  --app-toggle-text: #1e293b;
 }
 
 * {
@@ -14,6 +31,35 @@ body {
   color: var(--foreground);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+}
+
+.app-shell {
+  background: var(--app-bg);
+  color: var(--app-text);
+}
+
+.app-nav {
+  background: var(--app-nav);
+  border-color: var(--app-border);
+}
+
+.app-theme-toggle {
+  background: var(--app-toggle-bg);
+  border-color: var(--app-border);
+  color: var(--app-toggle-text);
+  backdrop-filter: blur(10px);
+}
+
+[data-theme='light'] .glass {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(15, 23, 42, 0.12);
+}
+
+[data-theme='light'] .text-slate-400,
+[data-theme='light'] .text-slate-500,
+[data-theme='light'] .text-slate-600,
+[data-theme='light'] .text-slate-700 {
+  color: #475569;
 }
 
 /* Custom scrollbar */

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import ThemeToggle from "@/components/themeToggle";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -20,9 +21,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${inter.className} antialiased bg-[#04050a] text-white`}>
+    <html lang="en" data-theme="dark">
+      <body className={`${inter.className} antialiased`}>
         {children}
+        <ThemeToggle />
       </body>
     </html>
   );

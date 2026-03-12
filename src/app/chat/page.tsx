@@ -582,9 +582,9 @@ export default function ChatPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#04050a] overflow-hidden">
+    <div className="flex flex-col h-screen app-shell overflow-hidden">
       {/* ── Header ── */}
-      <div className="flex-shrink-0 border-b border-white/8 bg-[#04050a]/90 backdrop-blur-xl z-20">
+      <div className="flex-shrink-0 border-b border-white/8 app-nav backdrop-blur-xl z-20">
         <div className="max-w-4xl mx-auto px-4 h-16 flex items-center gap-3">
           <Link href="/" className="p-2 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white">
             <ArrowLeft className="w-5 h-5" />
@@ -754,7 +754,7 @@ export default function ChatPage() {
       </div>
 
       {/* ── Input Bar ── */}
-      <div className="flex-shrink-0 border-t border-white/8 bg-[#04050a]/95 backdrop-blur-xl">
+      <div className="flex-shrink-0 border-t border-white/8 app-nav backdrop-blur-xl">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <form onSubmit={handleSubmit} className="flex items-end gap-3">
             <div className="flex-1 input-ring bg-white/[0.04] border border-white/10 rounded-2xl overflow-hidden transition-all">

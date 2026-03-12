@@ -172,7 +172,7 @@ function StatusContent() {
   const statusConf = application ? STATUS_CONFIG[application.status] || { color: 'text-slate-300', bg: 'bg-slate-500/15 border-slate-500/30', icon: <Clock className="w-4 h-4" /> } : null;
 
   return (
-    <div className="min-h-screen bg-[#04050a] text-white">
+    <div className="min-h-screen app-shell">
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-indigo-600 rounded-full blur-[150px] opacity-[0.06]" />
@@ -181,7 +181,7 @@ function StatusContent() {
       </div>
 
       {/* Navbar */}
-      <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-[#04050a]/80 backdrop-blur-xl">
+      <nav className="fixed top-0 left-0 right-0 z-50 border-b app-nav backdrop-blur-xl">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center gap-4">
           <Link href="/" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
             <ArrowLeft className="w-4 h-4" />
