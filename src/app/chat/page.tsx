@@ -1,0 +1,375 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Send, Sparkles, User, ArrowLeft, RefreshCw, Copy, CheckCircle,
+  ExternalLink, MessageSquare,
+} from 'lucide-react';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+  quickReplies?: string[];
+  applicationId?: string;
+}
+
+const SESSION_KEY = 'sevadesk_session';
+const MESSAGES_KEY = 'sevadesk_messages';
+const LEGACY_SESSION_KEY = 'govai_session';
+const LEGACY_MESSAGES_KEY = 'govai_messages';
+
+// Simple markdown-like renderer (bold, code, newlines)
+function renderContent(content: string) {
+  const parts = content.split(/(\*\*.*?\*\*|`.*?`)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('**') && part.endsWith('**'))
+      return <strong key={i} className="text-indigo-200 font-semibold">{part.slice(2, -2)}</strong>;
+    if (part.startsWith('`') && part.endsWith('`') && part.includes('##'))
+      return <code key={i} className="font-mono text-base bg-indigo-500/20 px-2 py-0.5 rounded text-indigo-200">{part.replace(/^##\s+`?|`?$/g, '')}</code>;
+    if (part.startsWith('`') && part.endsWith('`'))
+      return <code key={i} className="font-mono bg-white/10 px-1.5 py-0.5 rounded text-indigo-200 text-[0.85em]">{part.slice(1, -1)}</code>;
+    return <span key={i}>{part}</span>;
+  });
+}
+
+export default function ChatPage() {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const initialized = useRef(false);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => { scrollToBottom(); }, [messages, loading]);
+
+  // Initialize on first mount
+  useEffect(() => {
+    if (initialized.current) return;
+    initialized.current = true;
+
+    const storedSid = localStorage.getItem(SESSION_KEY) || localStorage.getItem(LEGACY_SESSION_KEY);
+    const storedMsgs = localStorage.getItem(MESSAGES_KEY) || localStorage.getItem(LEGACY_MESSAGES_KEY);
+
+    if (storedSid && storedMsgs) {
+      try {
+        const parsed: Message[] = JSON.parse(storedMsgs);
+        if (parsed.length > 0) {
+          setSessionId(storedSid);
+          setMessages(parsed);
+          return;
+        }
+      } catch { /* ignore */ }
+    }
+
+    sendToAPI('__init__', null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist messages
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  async function sendToAPI(text: string, sid: string | null) {
+    setLoading(true);
+
+    if (text !== '__init__') {
+      const userMsg: Message = {
+        id: `u-${Date.now()}`,
+        role: 'user',
+        content: text,
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, userMsg]);
+    }
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: sid, message: text }),
+      });
+      const data = await res.json();
+
+      const newSid = data.sessionId || sid;
+      if (newSid && newSid !== sid) {
+        setSessionId(newSid);
+        localStorage.setItem(SESSION_KEY, newSid);
+      }
+
+      const aiMsg: Message = {
+        id: `a-${Date.now()}`,
+        role: 'assistant',
+        content: data.message,
+        timestamp: new Date().toISOString(),
+        quickReplies: data.quickReplies,
+        applicationId: data.applicationId,
+      };
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch {
+      const errMsg: Message = {
+        id: `e-${Date.now()}`,
+        role: 'assistant',
+        content: '⚠️ Something went wrong. Please try again.',
+        timestamp: new Date().toISOString(),
+      };
+      setMessages((prev) => [...prev, errMsg]);
+    } finally {
+      setLoading(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const text = input.trim();
+    if (!text || loading) return;
+    setInput('');
+    sendToAPI(text, sessionId);
+  }
+
+  function handleQuickReply(reply: string) {
+    if (loading) return;
+    sendToAPI(reply, sessionId);
+  }
+
+  function handleReset() {
+    localStorage.removeItem(SESSION_KEY);
+    localStorage.removeItem(MESSAGES_KEY);
+    localStorage.removeItem(LEGACY_SESSION_KEY);
+    localStorage.removeItem(LEGACY_MESSAGES_KEY);
+    setMessages([]);
+    setSessionId(null);
+    initialized.current = false;
+    sendToAPI('__init__', null);
+  }
+
+  function copyApplicationId(id: string) {
+    navigator.clipboard.writeText(id).then(() => {
+      setCopied(id);
+      setTimeout(() => setCopied(null), 2000);
+    });
+  }
+
+  function formatTime(ts: string) {
+    try {
+      return new Date(ts).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true });
+    } catch {
+      return '';
+    }
+  }
+
+  return (
+    <div className="flex flex-col h-screen bg-[#04050a] overflow-hidden">
+      {/* ── Header ── */}
+      <div className="flex-shrink-0 border-b border-white/8 bg-[#04050a]/90 backdrop-blur-xl z-20">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center gap-3">
+          <Link href="/" className="p-2 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+
+          <div className="flex items-center gap-3 flex-1">
+            <div className="relative">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <Sparkles className="w-5 h-5 text-white" />
+              </div>
+              <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[#04050a]" />
+            </div>
+            <div>
+              <p className="font-semibold text-white text-sm">SevaDesk Assistant</p>
+              <p className="text-emerald-400 text-xs">Online • Ready to help</p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleReset}
+            title="Start new conversation"
+            className="p-2 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white"
+          >
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Messages ── */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+          {/* Welcome message if no messages */}
+          {messages.length === 0 && !loading && (
+            <div className="flex flex-col items-center justify-center py-20 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center mb-4 shadow-xl shadow-indigo-500/20">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
+              <h2 className="text-xl font-semibold text-white mb-2">SevaDesk</h2>
+              <p className="text-slate-500 text-sm max-w-sm">
+                Your AI assistant for Indian government document services. Ask about PAN, Passport, Aadhaar, Driving Licence, and more.
+              </p>
+            </div>
+          )}
+
+          <AnimatePresence initial={false}>
+            {messages.map((msg) => (
+              <motion.div
+                key={msg.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                {/* AI Avatar */}
+                {msg.role === 'assistant' && (
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                )}
+
+                <div className={`flex flex-col gap-2 max-w-[85%] sm:max-w-[75%] ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
+                  {/* Bubble */}
+                  <div
+                    className={`rounded-2xl px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap break-words ${
+                      msg.role === 'user'
+                        ? 'bg-indigo-600 text-white rounded-tr-sm'
+                        : 'bg-white/[0.06] border border-white/[0.08] text-slate-100 rounded-tl-sm'
+                    }`}
+                  >
+                    {msg.role === 'assistant'
+                      ? renderContent(msg.content)
+                      : msg.content}
+
+                    {/* Application ID card */}
+                    {msg.applicationId && (
+                      <div className="mt-3 pt-3 border-t border-white/10">
+                        <p className="text-xs text-slate-400 mb-2">Your Application ID:</p>
+                        <div className="flex items-center gap-2 bg-indigo-900/40 border border-indigo-500/30 rounded-lg px-3 py-2">
+                          <code className="font-mono text-sm font-bold text-indigo-200 flex-1">{msg.applicationId}</code>
+                          <button
+                            onClick={() => copyApplicationId(msg.applicationId!)}
+                            className="text-slate-400 hover:text-white transition-colors"
+                            title="Copy Application ID"
+                          >
+                            {copied === msg.applicationId
+                              ? <CheckCircle className="w-4 h-4 text-emerald-400" />
+                              : <Copy className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <Link href={`/status?id=${msg.applicationId}`} className="inline-flex items-center gap-1 mt-2 text-xs text-indigo-400 hover:text-indigo-300 transition-colors">
+                          <ExternalLink className="w-3 h-3" /> Track Application Status
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quick replies */}
+                  {msg.role === 'assistant' && msg.quickReplies && msg.quickReplies.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {msg.quickReplies.map((reply) => (
+                        <button
+                          key={reply}
+                          onClick={() => handleQuickReply(reply)}
+                          disabled={loading}
+                          className="px-3 py-1.5 text-xs rounded-full border border-indigo-500/40 text-indigo-300 bg-indigo-500/5 hover:bg-indigo-500/15 hover:border-indigo-400/60 transition-all disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
+                        >
+                          {reply}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Timestamp */}
+                  <p className="text-[10px] text-slate-600 px-1">{formatTime(msg.timestamp)}</p>
+                </div>
+
+                {/* User Avatar */}
+                {msg.role === 'user' && (
+                  <div className="flex-shrink-0 mt-1">
+                    <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center">
+                      <User className="w-4 h-4 text-slate-300" />
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </AnimatePresence>
+
+          {/* Typing indicator */}
+          {loading && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex gap-3 justify-start"
+            >
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 mt-1">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl rounded-tl-sm px-4 py-3">
+                <div className="flex gap-1.5 items-center h-5">
+                  {[0, 1, 2].map((i) => (
+                    <span
+                      key={i}
+                      className="typing-dot w-2 h-2 bg-indigo-400 rounded-full inline-block"
+                      style={{ animationDelay: `${i * 0.2}s` }}
+                    />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          <div ref={messagesEndRef} className="h-4" />
+        </div>
+      </div>
+
+      {/* ── Input Bar ── */}
+      <div className="flex-shrink-0 border-t border-white/8 bg-[#04050a]/95 backdrop-blur-xl">
+        <div className="max-w-4xl mx-auto px-4 py-4">
+          <form onSubmit={handleSubmit} className="flex items-end gap-3">
+            <div className="flex-1 input-ring bg-white/[0.04] border border-white/10 rounded-2xl overflow-hidden transition-all">
+              <input
+                ref={inputRef}
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Type your answer or click a quick reply above..."
+                className="w-full bg-transparent text-white placeholder-slate-600 px-4 py-3.5 text-sm outline-none"
+                disabled={loading}
+              />
+            </div>
+            <motion.button
+              type="submit"
+              disabled={!input.trim() || loading}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="w-12 h-12 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center transition-colors shadow-lg shadow-indigo-500/20 flex-shrink-0"
+            >
+              <Send className="w-4 h-4 text-white" />
+            </motion.button>
+          </form>
+
+          <div className="flex items-center justify-between mt-2 px-1">
+            <p className="text-[11px] text-slate-700">
+              Type &quot;help&quot; for commands • &quot;start over&quot; to restart
+            </p>
+            <Link href="/status" className="text-[11px] text-slate-600 hover:text-indigo-400 transition-colors flex items-center gap-1">
+              <MessageSquare className="w-3 h-3" /> Track Status
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,146 @@
+{
+  "applications": [
+    {
+      "id": "PAN-2026-DEMO01",
+      "type": "PAN Card Application",
+      "service": "apply",
+      "document": "pan",
+      "status": "Dispatched",
+      "applicantName": "Arjun Sharma",
+      "applicantMobile": "9876543210",
+      "applicantEmail": "arjun.sharma@example.com",
+      "statusHistory": [
+        {
+          "status": "Submitted",
+          "timestamp": "2026-03-01T09:00:00Z",
+          "note": "Application received"
+        },
+        {
+          "status": "Under Review",
+          "timestamp": "2026-03-02T10:30:00Z",
+          "note": "Documents verification in progress"
+        },
+        {
+          "status": "Documents Verified",
+          "timestamp": "2026-03-04T14:00:00Z",
+          "note": "All documents verified successfully"
+        },
+        {
+          "status": "Approved",
+          "timestamp": "2026-03-06T11:00:00Z",
+          "note": "Application approved by NSDL"
+        },
+        {
+          "status": "Dispatched",
+          "timestamp": "2026-03-10T08:00:00Z",
+          "note": "PAN card dispatched via Speed Post. Tracking: EG123456789IN"
+        }
+      ],
+      "submittedAt": "2026-03-01T09:00:00Z",
+      "data": {
+        "firstName": "Arjun",
+        "lastName": "Sharma",
+        "city": "Mumbai",
+        "state": "Maharashtra"
+      }
+    },
+    {
+      "id": "PSP-2026-DEMO02",
+      "type": "Fresh Passport Application",
+      "service": "apply",
+      "document": "passport",
+      "status": "Police Verification Pending",
+      "applicantName": "Priya Nair",
+      "applicantMobile": "9123456789",
+      "applicantEmail": "priya.nair@example.com",
+      "statusHistory": [
+        {
+          "status": "Submitted",
+          "timestamp": "2026-03-05T10:00:00Z",
+          "note": "Application received at Passport Seva Kendra"
+        },
+        {
+          "status": "Under Review",
+          "timestamp": "2026-03-06T09:00:00Z",
+          "note": "Document verification initiated"
+        },
+        {
+          "status": "Documents Verified",
+          "timestamp": "2026-03-08T14:00:00Z",
+          "note": "All documents found in order"
+        },
+        {
+          "status": "Police Verification Pending",
+          "timestamp": "2026-03-09T10:00:00Z",
+          "note": "Application forwarded to local police station for address verification"
+        }
+      ],
+      "submittedAt": "2026-03-05T10:00:00Z",
+      "data": {
+        "givenName": "Priya",
+        "surname": "Nair",
+        "city": "Kochi",
+        "state": "Kerala"
+      }
+    },
+    {
+      "id": "DL-2026-DEMO03",
+      "type": "Learner's Driving Licence",
+      "service": "apply",
+      "document": "driving-license",
+      "status": "Test Scheduled",
+      "applicantName": "Rahul Verma",
+      "applicantMobile": "8765432109",
+      "applicantEmail": "rahul.verma@example.com",
+      "statusHistory": [
+        {
+          "status": "Submitted",
+          "timestamp": "2026-03-08T11:00:00Z",
+          "note": "Application received at RTO"
+        },
+        {
+          "status": "Under Review",
+          "timestamp": "2026-03-09T10:00:00Z",
+          "note": "Documents under verification"
+        },
+        {
+          "status": "Test Scheduled",
+          "timestamp": "2026-03-11T09:00:00Z",
+          "note": "Learner Licence test scheduled for 2026-03-18 at 10:00 AM at RTO-12, Hyderabad"
+        }
+      ],
+      "submittedAt": "2026-03-08T11:00:00Z",
+      "data": {
+        "fullName": "Rahul Verma",
+        "city": "Hyderabad",
+        "state": "Telangana"
+      }
+    },
+    {
+      "id": "AAD-2026-3LP85J",
+      "type": "Aadhaar Update/Correction",
+      "service": "apply",
+      "document": "aadhaar",
+      "status": "Submitted",
+      "statusHistory": [
+        {
+          "status": "Submitted",
+          "timestamp": "2026-03-12T20:19:34.633Z",
+          "note": "Application received successfully"
+        }
+      ],
+      "submittedAt": "2026-03-12T20:19:34.633Z",
+      "data": {
+        "aadhaarNumber": "785859653666",
+        "registeredName": "vikram",
+        "updateType": "Mobile Number",
+        "newValue": "7977789337",
+        "mobile": "7977789337",
+        "supportingDoc": "Driving License"
+      },
+      "applicantName": "Applicant",
+      "applicantMobile": "7977789337",
+      "applicantEmail": ""
+    }
+  ]
+}
