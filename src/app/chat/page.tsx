@@ -84,6 +84,7 @@ function getSpeechText(content: string) {
   return content
     .replace(/\*\*(.*?)\*\*/g, '$1')
     .replace(/`(.*?)`/g, '$1')
+    .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/gu, '')
     .replace(/\n+/g, '. ')
     .replace(/\s+/g, ' ')
     .trim();
