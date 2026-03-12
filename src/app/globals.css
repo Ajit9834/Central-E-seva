@@ -16,7 +16,7 @@
   --foreground: #0f172a;
   --app-bg: #f2f5fb;
   --app-text: #0f172a;
-  --app-nav: rgba(242, 245, 251, 0.84);
+  --app-nav: rgba(248, 250, 255, 0.92);
   --app-border: rgba(15, 23, 42, 0.12);
   --app-toggle-bg: rgba(15, 23, 42, 0.08);
   --app-toggle-text: #1e293b;
@@ -51,15 +51,60 @@ body {
 }
 
 [data-theme='light'] .glass {
-  background: rgba(255, 255, 255, 0.72);
-  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+[data-theme='light'] .text-slate-100,
+[data-theme='light'] .text-slate-200 {
+  color: #1f2937;
+}
+
+[data-theme='light'] .text-slate-300 {
+  color: #334155;
 }
 
 [data-theme='light'] .text-slate-400,
 [data-theme='light'] .text-slate-500,
 [data-theme='light'] .text-slate-600,
 [data-theme='light'] .text-slate-700 {
-  color: #475569;
+  color: #334155;
+}
+
+[data-theme='light'] .hover\:text-white:hover {
+  color: #0f172a;
+}
+
+[data-theme='light'] .bg-white\/\[0\.02\],
+[data-theme='light'] .bg-white\/\[0\.03\],
+[data-theme='light'] .bg-white\/\[0\.04\],
+[data-theme='light'] .bg-white\/\[0\.05\],
+[data-theme='light'] .bg-white\/\[0\.06\],
+[data-theme='light'] .bg-white\/\[0\.08\],
+[data-theme='light'] .bg-white\/\[0\.10\],
+[data-theme='light'] .bg-white\/\[0\.20\],
+[data-theme='light'] .bg-white\/5,
+[data-theme='light'] .bg-white\/10,
+[data-theme='light'] .bg-white\/20 {
+  background-color: rgba(15, 23, 42, 0.05);
+}
+
+[data-theme='light'] .border-white\/5,
+[data-theme='light'] .border-white\/8,
+[data-theme='light'] .border-white\/10,
+[data-theme='light'] .border-white\/20 {
+  border-color: rgba(15, 23, 42, 0.16);
+}
+
+[data-theme='light'] .chat-content code {
+  color: #1e3a8a;
+  background: rgba(59, 130, 246, 0.12);
+}
+
+[data-theme='light'] .grid-bg {
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.05) 1px, transparent 1px);
 }
 
 /* Custom scrollbar */

@@ -112,6 +112,54 @@ function getLatestAssistantPrompt(messages: Message[]) {
   return '';
 }
 
+function extractPhoneCandidates(text: string) {
+  const candidates: string[] = [];
+  const seen = new Set<string>();
+
+  const matches = text.match(/(?:\+?91[\s-]?)?[0-9][0-9\s-]{8,14}/g) || [];
+  for (const raw of matches) {
+    const digits = raw.replace(/\D/g, '');
+
+    let mobile = '';
+    if (digits.length === 10) {
+      mobile = digits;
+    } else if (digits.length === 12 && digits.startsWith('91')) {
+      mobile = digits.slice(2);
+    }
+
+    if (!mobile || mobile.length !== 10) continue;
+    if (seen.has(mobile)) continue;
+    seen.add(mobile);
+    candidates.push(mobile);
+  }
+
+  return candidates;
+}
+
+function extractLikelyFullName(ocrText: string) {
+  const lines = ocrText
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const blockedWords = /government|india|republic|address|dob|sex|male|female|card|authority|uidai|department|issue|valid/i;
+  const labelPattern = /^(name|full name|given name|surname)\s*[:\-]\s*/i;
+
+  for (const line of lines) {
+    if (blockedWords.test(line)) continue;
+    const cleaned = line.replace(labelPattern, '').replace(/\s+/g, ' ').trim();
+    if (!cleaned) continue;
+
+    const words = cleaned.split(' ').filter((w) => /^[A-Za-z.]+$/.test(w));
+    if (words.length < 2 || words.length > 5) continue;
+
+    const fullName = words.join(' ');
+    if (fullName.length >= 5) return fullName;
+  }
+
+  return '';
+}
+
 function extractAutofillValue(ocrText: string, prompt: string) {
   const text = normalizeOcrText(ocrText);
   const ask = prompt.toLowerCase();
@@ -132,8 +180,7 @@ function extractAutofillValue(ocrText: string, prompt: string) {
   }
 
   if (/mobile|phone|contact/.test(ask)) {
-    const mobile = find(/(?:\+?91[\s-]?)?[6-9]\d{9}\b/).replace(/\D/g, '');
-    return mobile.startsWith('91') ? mobile.slice(2) : mobile;
+    return extractPhoneCandidates(text)[0] || '';
   }
 
   if (/email/.test(ask)) {
@@ -149,11 +196,8 @@ function extractAutofillValue(ocrText: string, prompt: string) {
   }
 
   if (/name/.test(ask)) {
-    const nameLine = ocrText
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .find((line) => /^[A-Za-z][A-Za-z\s.]{2,}$/.test(line) && !/government|india|republic|address|dob|sex/i.test(line));
-    if (nameLine) return nameLine;
+    const fullName = extractLikelyFullName(ocrText);
+    if (fullName) return fullName;
   }
 
   const firstLine = ocrText
@@ -191,12 +235,7 @@ function extractOcrCandidates(ocrText: string): OcrCandidate[] {
   const passportMatches = text.match(/\b[A-PR-WYa-pr-wy][1-9]\d{6}\b/g) || [];
   for (const match of passportMatches) add('Passport Number', match.toUpperCase());
 
-  const mobileMatches = text.match(/(?:\+?91[\s-]?)?[6-9]\d{9}\b/g) || [];
-  for (const match of mobileMatches) {
-    const digits = match.replace(/\D/g, '');
-    const mobile = digits.startsWith('91') ? digits.slice(2) : digits;
-    if (mobile.length === 10) add('Mobile Number', mobile);
-  }
+  for (const mobile of extractPhoneCandidates(text)) add('Mobile Number', mobile);
 
   const emailMatches = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[A-Za-z]{2,}/g) || [];
   for (const match of emailMatches) add('Email', match);
@@ -207,12 +246,8 @@ function extractOcrCandidates(ocrText: string): OcrCandidate[] {
   const pincodeMatches = text.match(/\b\d{6}\b/g) || [];
   for (const match of pincodeMatches) add('PIN Code', match);
 
-  for (const line of lines) {
-    if (/^name[:\s]/i.test(line)) {
-      const value = line.replace(/^name[:\s]*/i, '').trim();
-      if (value.length >= 3) add('Name', value);
-    }
-  }
+  const fullName = extractLikelyFullName(ocrText);
+  if (fullName) add('Full Name', fullName);
 
   return output.slice(0, 16);
 }
