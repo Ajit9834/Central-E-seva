@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image, { StaticImageData } from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import {
@@ -9,15 +10,34 @@ import {
   CreditCard, Globe, Car, Vote, ShoppingBag, ScrollText,
   MessageSquare, Bot, BadgeCheck, IdCard, ChevronRight,
 } from 'lucide-react';
+import panImage from '../../assets/pan.png';
+import aadhaarImage from '../../assets/aadhar.png';
+import passportImage from '../../assets/passport.png';
+import drivingImage from '../../assets/driving.png';
+import voterImage from '../../assets/voter.png';
+import rationImage from '../../assets/ration.png';
+import birthImage from '../../assets/birth.png';
 
-const services = [
-  { icon: <CreditCard className="w-6 h-6" />, title: 'PAN Card', desc: 'Apply for new PAN or request corrections', color: 'from-orange-500/20 to-amber-500/10', border: 'border-orange-500/20', badge: 'Most Popular', badgeColor: 'bg-orange-500/20 text-orange-300', link: '/chat' },
-  { icon: <IdCard className="w-6 h-6" />, title: 'Aadhaar Update', desc: 'Update name, address, DOB or mobile', color: 'from-blue-500/20 to-cyan-500/10', border: 'border-blue-500/20', link: '/chat' },
-  { icon: <Globe className="w-6 h-6" />, title: 'Passport', desc: 'Fresh application, renewal & Tatkal', color: 'from-indigo-500/20 to-violet-500/10', border: 'border-indigo-500/20', link: '/chat' },
-  { icon: <Car className="w-6 h-6" />, title: 'Driving Licence', desc: "Learner's licence application & status", color: 'from-green-500/20 to-emerald-500/10', border: 'border-green-500/20', link: '/chat' },
-  { icon: <Vote className="w-6 h-6" />, title: 'Voter ID', desc: 'New voter registration — EPIC card', color: 'from-red-500/20 to-rose-500/10', border: 'border-red-500/20', link: '/chat' },
-  { icon: <ShoppingBag className="w-6 h-6" />, title: 'Ration Card', desc: 'Apply under NFSA — AAY, PHH, NPHH', color: 'from-yellow-500/20 to-amber-500/10', border: 'border-yellow-500/20', link: '/chat' },
-  { icon: <ScrollText className="w-6 h-6" />, title: 'Birth Certificate', desc: 'Register a birth and get certificate', color: 'from-purple-500/20 to-pink-500/10', border: 'border-purple-500/20', link: '/chat' },
+type ServiceCard = {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+  color: string;
+  border: string;
+  badge?: string;
+  badgeColor?: string;
+  link: string;
+  image?: StaticImageData;
+};
+
+const services: ServiceCard[] = [
+  { icon: <CreditCard className="w-6 h-6" />, title: 'PAN Card', desc: 'Apply for new PAN or request corrections', color: 'from-orange-500/20 to-amber-500/10', border: 'border-orange-500/20', badge: 'Most Popular', badgeColor: 'bg-orange-500/20 text-orange-300', link: '/chat', image: panImage },
+  { icon: <IdCard className="w-6 h-6" />, title: 'Aadhaar Update', desc: 'Update name, address, DOB or mobile', color: 'from-blue-500/20 to-cyan-500/10', border: 'border-blue-500/20', link: '/chat', image: aadhaarImage },
+  { icon: <Globe className="w-6 h-6" />, title: 'Passport', desc: 'Fresh application, renewal & Tatkal', color: 'from-indigo-500/20 to-violet-500/10', border: 'border-indigo-500/20', link: '/chat', image: passportImage },
+  { icon: <Car className="w-6 h-6" />, title: 'Driving Licence', desc: "Learner's licence application & status", color: 'from-green-500/20 to-emerald-500/10', border: 'border-green-500/20', link: '/chat', image: drivingImage },
+  { icon: <Vote className="w-6 h-6" />, title: 'Voter ID', desc: 'New voter registration — EPIC card', color: 'from-red-500/20 to-rose-500/10', border: 'border-red-500/20', link: '/chat', image: voterImage },
+  { icon: <ShoppingBag className="w-6 h-6" />, title: 'Ration Card', desc: 'Apply under NFSA — AAY, PHH, NPHH', color: 'from-yellow-500/20 to-amber-500/10', border: 'border-yellow-500/20', link: '/chat', image: rationImage },
+  { icon: <ScrollText className="w-6 h-6" />, title: 'Birth Certificate', desc: 'Register a birth and get certificate', color: 'from-purple-500/20 to-pink-500/10', border: 'border-purple-500/20', link: '/chat', image: birthImage },
   { icon: <Search className="w-6 h-6" />, title: 'Track Application', desc: 'Real-time status of any application', color: 'from-slate-500/20 to-gray-500/10', border: 'border-slate-500/20', link: '/status' },
 ];
 
@@ -192,11 +212,28 @@ export default function HomePage() {
               <motion.div key={svc.title} initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}>
                 <Link href={svc.link}>
                   <div className={`relative overflow-hidden rounded-2xl p-5 bg-gradient-to-br ${svc.color} border ${svc.border} glass-hover transition-all duration-300 cursor-pointer group card-shine h-full`}>
+                    {svc.image && (
+                      <>
+                        <div className="absolute inset-y-0 right-0 w-[58%] overflow-hidden pointer-events-none">
+                          <Image
+                            src={svc.image}
+                            alt={svc.title}
+                            fill
+                            sizes="(max-width: 1024px) 50vw, 25vw"
+                            className="object-contain object-right opacity-35 blur-[1.5px] scale-110 translate-x-6 group-hover:scale-[1.14] transition-transform duration-500"
+                          />
+                        </div>
+                        <div className="absolute inset-y-0 left-0 w-2/3 bg-gradient-to-r from-[#04050a]/90 via-[#04050a]/55 to-transparent pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#04050a]/35 via-transparent to-transparent pointer-events-none" />
+                      </>
+                    )}
                     {svc.badge && <span className={`absolute top-3 right-3 px-2 py-0.5 text-xs rounded-full ${svc.badgeColor} font-medium`}>{svc.badge}</span>}
-                    <div className="mb-3 text-slate-300 group-hover:scale-110 transition-transform duration-300 inline-block">{svc.icon}</div>
-                    <h3 className="font-semibold text-white mb-1.5">{svc.title}</h3>
-                    <p className="text-sm text-slate-400 leading-relaxed">{svc.desc}</p>
-                    <div className="mt-4 flex items-center gap-1 text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">Get Started <ArrowRight className="w-3 h-3" /></div>
+                    <div className="relative z-10">
+                      <div className="mb-3 text-slate-300 group-hover:scale-110 transition-transform duration-300 inline-block">{svc.icon}</div>
+                      <h3 className="font-semibold text-white mb-1.5">{svc.title}</h3>
+                      <p className="text-sm text-slate-400 leading-relaxed max-w-[72%] sm:max-w-full lg:max-w-[72%]">{svc.desc}</p>
+                      <div className="mt-4 flex items-center gap-1 text-xs text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity">Get Started <ArrowRight className="w-3 h-3" /></div>
+                    </div>
                   </div>
                 </Link>
               </motion.div>
