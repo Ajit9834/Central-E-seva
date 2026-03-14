@@ -28,10 +28,21 @@ function mapDocumentType(type: string): Document['type'] {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('=== Upload Request Started ===');
+    
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const documentType = formData.get('documentType') as string;
     const title = formData.get('title') as string;
+    
+    console.log('Request data:', {
+      hasFile: !!file,
+      fileName: file?.name,
+      fileSize: file?.size,
+      documentType,
+      title,
+      allFormDataKeys: Array.from(formData.keys())
+    });
 
     if (!file) {
       return NextResponse.json(
@@ -144,9 +155,19 @@ export async function POST(request: NextRequest) {
       });
     }
   } catch (error) {
-    console.error('Error uploading document:', error);
+    const err = error as Error;
+    console.error('=== Upload Error Details ===');
+    console.error('Error type:', err?.constructor?.name);
+    console.error('Error message:', err?.message);
+    console.error('Error stack:', err?.stack);
+    console.error('Full error:', error);
+    
     return NextResponse.json(
-      { success: false, error: 'Failed to upload document' },
+      { 
+        success: false, 
+        error: 'Failed to upload document',
+        details: err?.message || 'Unknown error'
+      },
       { status: 500 }
     );
   }
