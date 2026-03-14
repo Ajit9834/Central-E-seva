@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useCallback, useReducer } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -64,33 +64,49 @@ function SchemeFinderForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [age, setAge] = useState<string>('');
-  const [income, setIncome] = useState<string>('');
-  const [state, setState] = useState<string>('');
-  const [occupation, setOccupation] = useState<string>('');
-  const [gender, setGender] = useState<string>('');
   const [filteredSchemes, setFilteredSchemes] = useState<Scheme[] | null>(null);
 
-  // Sync state from URL parameters on mount and whenever searchParams changes
-  useEffect(() => {
-    const queryAge = searchParams.get('age') || '';
-    const queryIncome = searchParams.get('income') || '';
-    const queryState = searchParams.get('state') || '';
-    const queryOccupation = searchParams.get('occupation') || '';
-    const queryGender = searchParams.get('gender') || '';
+  // Reducer for form state
+  type FormState = {
+    age: string;
+    income: string;
+    state: string;
+    occupation: string;
+    gender: string;
+  };
 
-    setAge(queryAge);
-    setIncome(queryIncome);
-    setState(queryState);
-    setOccupation(queryOccupation);
-    setGender(queryGender);
+  type FormAction = 
+    | { type: 'SET_FROM_URL'; payload: { queryAge: string; queryIncome: string; queryState: string; queryOccupation: string; queryGender: string } }
+    | { type: 'SET_FIELD'; payload: { field: keyof FormState; value: string } };
 
-    if (queryAge || queryIncome || queryState || queryOccupation || queryGender) {
-      runFilter(queryAge, queryIncome, queryState, queryOccupation, queryGender);
+  const formReducer = (state: FormState, action: FormAction): FormState => {
+    switch (action.type) {
+      case 'SET_FROM_URL':
+        return {
+          age: action.payload.queryAge,
+          income: action.payload.queryIncome,
+          state: action.payload.queryState,
+          occupation: action.payload.queryOccupation,
+          gender: action.payload.queryGender,
+        };
+      case 'SET_FIELD':
+        return { ...state, [action.payload.field]: action.payload.value };
+      default:
+        return state;
     }
-  }, [searchParams]);
+  };
 
-  const runFilter = (uAge: string, uIncome: string, uState: string, uOcc: string, uGender: string) => {
+  const [formData, dispatch] = useReducer(formReducer, {
+    age: '',
+    income: '',
+    state: '',
+    occupation: '',
+    gender: '',
+  });
+
+  const { age, income, state, occupation, gender } = formData;
+
+  const runFilter = useCallback((uAge: string, uIncome: string, uState: string, uOcc: string, uGender: string) => {
     const userAge = uAge ? parseInt(uAge, 10) : undefined;
     const userIncome = uIncome ? parseInt(uIncome, 10) : undefined;
     const userState = uState || undefined;
@@ -113,8 +129,39 @@ function SchemeFinderForm() {
       return true;
     });
 
-    setFilteredSchemes(results);
-  };
+    return results;
+  }, []);
+
+  const updateFilteredSchemes = useCallback(() => {
+    if (age || income || state || occupation || gender) {
+      const results = runFilter(age, income, state, occupation, gender);
+      setFilteredSchemes(results);
+    } else {
+      setFilteredSchemes(null);
+    }
+  }, [age, income, state, occupation, gender, runFilter]);
+
+  // Sync state from URL parameters on mount and whenever searchParams changes
+  useEffect(() => {
+    const queryAge = searchParams.get('age') || '';
+    const queryIncome = searchParams.get('income') || '';
+    const queryState = searchParams.get('state') || '';
+    const queryOccupation = searchParams.get('occupation') || '';
+    const queryGender = searchParams.get('gender') || '';
+
+    dispatch({
+      type: 'SET_FROM_URL',
+      payload: { queryAge, queryIncome, queryState, queryOccupation, queryGender }
+    });
+  }, [searchParams]);
+
+  // Run filter when form data changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      updateFilteredSchemes();
+    }, 0);
+    return () => clearTimeout(timeoutId);
+  }, [updateFilteredSchemes]);
 
   const handleFindSchemes = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -182,7 +229,7 @@ function SchemeFinderForm() {
                   <input
                     type="number"
                     value={age}
-                    onChange={(e) => setAge(e.target.value)}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', payload: { field: 'age', value: e.target.value }})}
                     placeholder="e.g. 25"
                     className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.08] transition-all"
                     min="0"
@@ -198,7 +245,7 @@ function SchemeFinderForm() {
                   <input
                     type="number"
                     value={income}
-                    onChange={(e) => setIncome(e.target.value)}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', payload: { field: 'income', value: e.target.value }})}
                     placeholder="e.g. 500000"
                     className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.08] transition-all"
                     min="0"
@@ -207,14 +254,14 @@ function SchemeFinderForm() {
 
                 {/* State */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <label htmlFor="state-select" className="text-sm font-medium text-slate-300 flex items-center gap-2">
                     <MapPin className="w-4 h-4 text-indigo-400" /> State
                   </label>
                   <select
+                    id="state-select"
                     value={state}
-                    onChange={(e) => setState(e.target.value)}
-                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.08] transition-all appearance-none"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3e%3cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', payload: { field: 'state', value: e.target.value }})}
+                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.08] transition-all appearance-none custom-select"
                   >
                     <option value="" className="bg-[#04050a] text-slate-400">Select State / All</option>
                     <option value="maharashtra" className="bg-[#04050a]">Maharashtra</option>
@@ -227,14 +274,14 @@ function SchemeFinderForm() {
 
                 {/* Occupation */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
+                  <label htmlFor="occupation-select" className="text-sm font-medium text-slate-300 flex items-center gap-2">
                     <Briefcase className="w-4 h-4 text-indigo-400" /> Occupation
                   </label>
                   <select
+                    id="occupation-select"
                     value={occupation}
-                    onChange={(e) => setOccupation(e.target.value)}
-                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.08] transition-all appearance-none"
-                    style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3e%3cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27M6 8l4 4 4-4%27/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
+                    onChange={(e) => dispatch({ type: 'SET_FIELD', payload: { field: 'occupation', value: e.target.value }})}
+                    className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500/50 focus:bg-white/[0.08] transition-all appearance-none custom-select"
                   >
                     <option value="" className="bg-[#04050a] text-slate-400">Select Occupation / All</option>
                     <option value="student" className="bg-[#04050a]">Student</option>
@@ -258,7 +305,7 @@ function SchemeFinderForm() {
                           name="gender"
                           value={g}
                           checked={gender === g}
-                          onChange={(e) => setGender(e.target.value)}
+                          onChange={(e) => dispatch({ type: 'SET_FIELD', payload: { field: 'gender', value: e.target.value }})}
                           className="w-4 h-4 text-indigo-600 bg-white/10 border-white/20 focus:ring-indigo-500/50 focus:ring-offset-[#04050a]"
                         />
                         <span className="text-sm text-slate-200">{g}</span>

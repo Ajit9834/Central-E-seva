@@ -776,7 +776,6 @@ export default function ChatPage() {
                     <span
                       key={i}
                       className="typing-dot w-2 h-2 bg-indigo-400 rounded-full inline-block"
-                      style={{ animationDelay: `${i * 0.2}s` }}
                     />
                   ))}
                 </div>
@@ -842,10 +841,13 @@ export default function ChatPage() {
             </motion.button>
             <input
               ref={ocrInputRef}
+              id="ocr-file-input"
               type="file"
               accept="image/*"
               onChange={handleOcrFileChange}
               className="hidden"
+              aria-label="Upload image for OCR processing"
+              title="Upload image for OCR processing"
             />
           </form>
 

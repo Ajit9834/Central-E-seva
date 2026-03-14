@@ -42,7 +42,12 @@ export default function SchemeDetailsPage({ params }: SchemeDetailsProps) {
       {/* ── Header ── */}
       <div className="flex-shrink-0 border-b border-white/8 app-nav backdrop-blur-xl z-20">
         <div className="max-w-3xl mx-auto px-4 h-16 flex items-center gap-3">
-          <button onClick={() => router.back()} className="p-2 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white">
+          <button 
+            onClick={() => router.back()} 
+            className="p-2 rounded-lg hover:bg-white/5 transition-colors text-slate-400 hover:text-white"
+            aria-label="Go back to previous page"
+            title="Go back"
+          >
             <ArrowLeft className="w-5 h-5" />
           </button>
 

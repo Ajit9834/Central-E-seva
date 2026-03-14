@@ -96,6 +96,9 @@ export default function HomePage() {
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <Link href="/schemes" className="hover:text-white transition-colors">Scheme Finder</Link>
             <Link href="/status" className="hover:text-white transition-colors">Track Status</Link>
+            <Link href="/documents" className="hover:text-white transition-colors flex items-center gap-1">
+              <FileText className="w-4 h-4" /> My Documents
+            </Link>
           </div>
           <Link href="/chat">
             <button className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm rounded-lg font-medium transition-all hover:shadow-lg hover:shadow-indigo-500/25 active:scale-95">
@@ -166,7 +169,7 @@ export default function HomePage() {
                   {visible < chatPreview.length && (
                     <div className="flex items-center gap-2">
                       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center"><Sparkles className="w-3.5 h-3.5 text-white" /></div>
-                      <div className="bg-white/5 border border-white/8 rounded-xl rounded-tl-sm px-3 py-2.5"><div className="flex gap-1">{[0,1,2].map((i) => <span key={i} className="typing-dot w-1.5 h-1.5 bg-indigo-400 rounded-full inline-block" style={{ animationDelay: `${i * 0.2}s` }} />)}</div></div>
+                      <div className="bg-white/5 border border-white/8 rounded-xl rounded-tl-sm px-3 py-2.5"><div className="flex gap-1">{[0,1,2].map((i) => <span key={i} className="typing-dot w-1.5 h-1.5 bg-indigo-400 rounded-full inline-block" />)}</div></div>
                     </div>
                   )}
                 </div>

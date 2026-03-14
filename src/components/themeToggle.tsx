@@ -18,9 +18,12 @@ export default function ThemeToggle() {
   useEffect(() => {
     const savedTheme = localStorage.getItem(STORAGE_KEY);
     const nextTheme: ThemeMode = savedTheme === 'light' ? 'light' : 'dark';
-    setTheme(nextTheme);
     applyTheme(nextTheme);
-    setReady(true);
+    // Defer setState calls to avoid warning
+    setTimeout(() => {
+      setTheme(nextTheme);
+      setReady(true);
+    }, 0);
   }, []);
 
   function toggleTheme() {
