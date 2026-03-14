@@ -12,6 +12,14 @@ function mapDocumentType(type: string): Document['type'] {
     'Driving License': 'driving',
     'Birth Certificate': 'birth',
     'Passport Photo': 'passport',
+    'Age Proof': 'age_proof',
+    '10th Marksheet': 'tenth_marksheet',
+    '12th Marksheet': 'twelfth_marksheet',
+    'Graduation Marksheet': 'graduation_marksheet',
+    'Address Proof': 'address_proof',
+    'Voter ID': 'voter_id',
+    'Income Certificate': 'income_certificate',
+    'Caste Certificate': 'caste_certificate',
     'Other': 'other'
   };
   
